@@ -55,3 +55,11 @@ sonata_user_profile_show:
 fos_user_profile_show:
     pattern: /{flavor}/myprofile
     defaults: { _controller: "AppBundle:Web\Default:profile", "id": 0 }
+
+fos_js_routing:
+    resource: "@FOSJsRoutingBundle/Resources/config/routing/routing.xml"
+
+login:
+    path:      /{flavor}/login
+    defaults:  { _controller: FOSUserBundle:Security:login }
+    requirements: { "flavor": "pocketcode|pocketkodey" }

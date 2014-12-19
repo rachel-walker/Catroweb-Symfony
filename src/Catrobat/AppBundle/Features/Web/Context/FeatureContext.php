@@ -504,6 +504,63 @@ class FeatureContext extends MinkContext implements KernelAwareContext, CustomSn
     $this->getSession()->wait(5000, '(typeof window.search != "undefined") && (window.search.searchPageLoadDone == true)');
   }
 
+    /**
+     * @When /^I click the "([^"]*)" button$/
+     */
+    public function iClickTheButton($arg1)
+    {
+        $arg1 = trim($arg1);
+        $page = $this->getSession()->getPage();
+        $button = null;
+
+        switch($arg1) {
+            case "login":
+                $button = $page->find("css", "#btn-login");
+                break;
+            case "logout":
+                $button = $page->find("css", "#btn-logout");
+                break;
+            default:
+                assertTrue(false);
+        }
+
+        $button->click();
+
+    }
+
+    /**
+     * @When /^I trigger Facebook login with auth_type '([^']*)'$/
+     */
+    public function iTriggerFacebookLogin($arg1)
+    {
+      $this->assertElementOnPage('#btn-login');
+      $this->iClickTheButton('login');
+      $this->assertPageAddress('/pocketcode/login');
+      $this->assertElementOnPage('#header-logo');
+      $this->assertElementOnPage('#btn-login_facebook');
+      $this->getSession()->executeScript('document.getElementById("facebook_auth_type").type = "text";');
+      $this->getSession()->getPage()->findById('facebook_auth_type')->setValue($arg1);
+      $this->clickLink('btn-login_facebook');
+      $this->getSession()->wait(2000);
+  }
+
+    /**
+     * @When /^I trigger Google login with approval prompt "([^"]*)"$/
+     */
+
+    public function iTriggerGoogleLogin($arg1)
+    {
+        $this->assertElementOnPage('#btn-login');
+        $this->iClickTheButton('login');
+        $this->assertPageAddress('/pocketcode/login');
+        $this->assertElementOnPage('#header-logo');
+        $this->assertElementOnPage('#btn-login_google');
+        $this->getSession()->executeScript('document.getElementById("gplus_approval_prompt").type = "text";');
+        $this->getSession()->getPage()->findById('gplus_approval_prompt')->setValue($arg1);
+        $this->clickLink('btn-login_google');
+        $this->clickLink('btn-login_google');
+        $this->getSession()->wait(2500);
+    }
 
   /**
    * @Then /^there should be "([^"]*)" programs in the database$/
@@ -564,4 +621,144 @@ class FeatureContext extends MinkContext implements KernelAwareContext, CustomSn
     $em->persist($starter);
     $em->flush();
   }
+
+  /**
+   * @When /^I switch to popup window$/
+
+   */
+  public function iSwitchToPopupWindow()
+  {
+      $this->getSession()->wait(3000);
+      $window_names = $this->getSession()->getDriver()->getWindowNames();
+      foreach ($window_names as $name) {
+          echo $name;
+          $this->getSession()->switchToWindow($name);
+      }
+      $this->getSession()->wait(1000);
+  }
+
+
+    /**
+     * @Then /^I log in to Facebook with email "([^"]*)" and password "([^"]*)"$/
+     */
+    public function iLogInToFacebookWithEmailAndPassword($arg1, $arg2)
+    {
+        $this->getSession()->wait(1000);
+        if($this->getSession()->getPage()->find('css', '#facebook') && $this->getSession()->getPage()->find('css', '#login_form')) {
+            echo 'facebook login form appeared';
+            $page = $this->getSession()->getPage();
+            $page->fillField('email',$arg1);
+            $page->fillField('pass',$arg2);
+            $button = $page->findById('u_0_2');
+            assertTrue($button != null);
+            $button->press();
+        } else if($this->getSession()->getPage()->find('css', '#facebook') && $this->getSession()->getPage()->find('css', '#u_0_1')) {
+            echo 'facebook reauthentication login form appeared';
+            $page = $this->getSession()->getPage();
+            $page->fillField('pass',$arg2);
+            $button = $page->findById('u_0_0');
+            assertTrue($button != null);
+            $button->press();
+        } else {
+            assertTrue(false, 'No Facebook form appeared!');
+        }
+        $this->getSession()->switchToWindow(null);
+        $this->getSession()->wait(4000);
+    }
+
+    /**
+     * @Then /^I log in to Google with email "([^"]*)" and password "([^"]*)"$/
+     */
+    public function iLogInToGoogleWithEmailAndPassword($arg1, $arg2)
+    {
+        $this->getSession()->wait(1000);
+        if($this->getSession()->getPage()->find('css', '#approval_container') && $this->getSession()->getPage()->find('css', '#submit_approve_access')) {
+            echo 'Google Approve Access form appeared';
+            $page = $this->getSession()->getPage();
+            $button = $page->findById('submit_approve_access');
+            assertTrue($button != null);
+            $button->press();
+        } else if($this->getSession()->getPage()->find('css', '.google-header-bar centered') && $this->getSession()->getPage()->find('css', '.signin-card clearfix')) {
+            echo 'Google login form appeared';
+            $page = $this->getSession()->getPage();
+
+            $page->fillField('Email',$arg1);
+            $page->fillField('Passwd',$arg2);
+            $button = $page->findById('signIn');
+            assertTrue($button != null);
+            $button->press();
+            $this->getSession()->wait(2000);
+
+            $accept_button = $page->findById('submit_approve_access');
+            assertTrue($accept_button != null);
+            $accept_button->press();
+        } else {
+            assertTrue(false, 'No Google form appeared!');
+        }
+
+        $this->getSession()->switchToWindow(null);
+        $this->getSession()->wait(4000);
+    }
+
+    /**
+     * @Then /^there is a user in the database:$/
+     */
+    public function thereIsAUserInTheDatabase(TableNode $table)
+    {
+        /**
+         * @var $user_manager \Catrobat\AppBundle\Entity\UserManager
+         */
+        $user_manager = $this->kernel->getContainer()->get('usermanager');
+        $users = $table->getHash();
+        $user = null;
+        for($i = 0; $i < count($users); $i++)
+        {
+            $user = $user_manager->findUserByUsername($users[$i]["name"]);
+            assertNotNull($user);
+            assertTrue($user->getUsername() == $users[$i]["name"], 'Name wrong');
+            assertTrue($user->getEmail() == $users[$i]["email"], 'E-Mail wrong');
+            assertTrue($user->getCountry() == $users[$i]["country"], 'Country wrong');
+            if($user->getFacebookUid() != ''){
+                assertTrue($user->getFacebookAccessToken() != '', 'no Facebook access token present');
+                assertTrue($user->getFacebookUid() == $users[$i]["facebook_uid"], 'Facebook UID wrong');
+                assertTrue($user->getFacebookName() == $users[$i]["facebook_name"], 'Facebook name wrong');
+            }
+            if($user->getGplusUid() != ''){
+                assertTrue($user->getGplusAccessToken() != '', 'no GPlus access token present');
+                assertTrue($user->getGplusIdToken() != '', 'no GPlus id token present');
+                assertTrue($user->getGplusRefreshToken() != '', 'no GPlus refresh token present');
+                assertTrue($user->getGplusUid() == $users[$i]["google_uid"], 'Google UID wrong');
+                assertTrue($user->getGplusName() == $users[$i]["google_name"], 'Google name wrong');
+            }
+        }
+    }
+
+    /**
+     * @When /^I logout$/
+     */
+    public function iLogout()
+    {
+        $this->getSession()->getPage()->find("css", ".btn show-nav-dropdown")->click();
+        $this->assertElementOnPage(".img-author-big");
+        $this->getSession()->getPage()->find("css", ".img-author-big")->click();
+
+    }
+
+    /**
+     * @Then /^I should not be logged in$/
+     */
+    public function iShouldNotBeLoggedIn()
+    {
+        $this->assertElementOnPage("#logo");
+        $this->assertElementOnPage("#btn-login");
+        $this->assertElementNotOnPage("#nav-dropdown");
+    }
+
+    /**
+     * @When /^I wait for a second$/
+     */
+    public function iWaitForASecond()
+    {
+        $this->getSession()->wait(1000);
+    }
 }

@@ -426,7 +426,7 @@ apk:
   download: Download APK
 errors:
   username:
-    blank: Username must not be blank
+    blank: Benutzername darf nicht leer sein
   password:
     blank: Du hast kein Passwort angegeben.
     short: 'Your password must have at least {{ limit }} characters.'
@@ -439,6 +439,8 @@ errors:
     blank: email must not be blank
     invalid: Your email seems to be invalid
     exists: Die E-Mail Adresse existiert bereits!
+  id:
+    blank: Open Authentication ID darf nicht leer sein
   login: Das Passwort oder der Username ist falsch.
   post-data: POST-Daten nicht korrekt oder fehlt!
   checksum:

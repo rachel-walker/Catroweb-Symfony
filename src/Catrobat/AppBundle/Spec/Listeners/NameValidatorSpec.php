@@ -33,7 +33,6 @@ class NameValidatorSpec extends ObjectBehavior
     $this->shouldNotThrow('Catrobat\AppBundle\Exceptions\InvalidCatrobatFileException')->duringValidate($file);
   }
 
-
   /**
    * @param \Catrobat\AppBundle\Services\ExtractedCatrobatFile $file
    */
