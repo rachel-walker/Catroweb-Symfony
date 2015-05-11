@@ -186,5 +186,11 @@ class ProgramManager implements \Knp\Bundle\PaginatorBundle\Definition\Paginator
     $this->entity_manager->persist($program);
     $this->entity_manager->flush();
   }
+
+
+  public function getMostRemixed($limit, $offset)
+  {
+    return $this->program_repository->getMostRemixed($limit, $offset);
+  }
   
 }

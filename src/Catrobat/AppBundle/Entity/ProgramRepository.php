@@ -142,4 +142,20 @@ class ProgramRepository extends EntityRepository
           ->getQuery()
           ->getSingleScalarResult();
   }
+
+  public function getMostRemixed($limit, $offset=0)
+  {
+    $flavor = 'pocketcode';
+    $qb = $this->createQueryBuilder('e');
+    return $qb
+      ->select('e')
+      ->where($qb->expr()->eq("e.visible", $qb->expr()->literal(true)))
+      ->andWhere($qb->expr()->eq("e.flavor", ":flavor"))
+      ->orderBy('e.remix_count', 'DESC')
+      ->setParameter("flavor", $flavor)
+      ->setFirstResult($offset)
+      ->setMaxResults($limit)
+      ->getQuery()
+      ->getResult();
+  }
 }
