@@ -91,7 +91,8 @@ class RemixController extends Controller
     return JsonResponse::create(array (
         'id' => $programId,
         'name' => $program->getName(),
-        'image' => ($request->isSecure() ? 'https://' : 'http://'). $request->getHttpHost() . '/' . $screenshot_repository->getThumbnailWebPath($program->getId()),
+        'image' => $screenshot_repository->getThumbnailWebPath($program->getId()),
+        'parent' => $program->getRemixOf() ? $program->getRemixOf()->getId() : null,
         'childs' => $program->getRemixCount() > 0 ? $this->getChilds($request, $program, $depth) : null
     ));
   }
@@ -112,7 +113,8 @@ class RemixController extends Controller
       $retArray[] = array(
         'id' => $child->getId(),
         'name' => $program->getName(),
-        'image' => ($request->isSecure() ? 'https://' : 'http://'). $request->getHttpHost() . '/' . $screenshot_repository->getThumbnailWebPath($program->getId()),
+        'image' => $screenshot_repository->getThumbnailWebPath($program->getId()),
+        'parent' => $child->getRemixOf() ? $child->getRemixOf()->getId() : null,
         'childs' => $child->getRemixCount() > 0 ? $this->getChilds($request, $child, $depth-1) : null
       );
     }
