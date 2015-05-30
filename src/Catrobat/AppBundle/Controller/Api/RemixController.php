@@ -22,33 +22,15 @@ class RemixController extends Controller
   {
 
     $program_manager = $this->get("programmanager");
-//    $screenshot_repository = $this->get("screenshotrepository");
-//    $elapsed_time = $this->get("elapsedtime");
-    $flavor = $request->getSession()->get('flavor');
 
     $retArray = array ();
     $limit = intval($request->query->get('limit', 20));
     $offset = intval($request->query->get('offset', 0));
     $user_id = intval($request->query->get('user_id', 0));
 
-
-
-//    if ($sortBy == "downloads")
-//      $programs = $program_manager->getMostDownloadedPrograms($flavor, $limit, $offset);
-//    else if ($sortBy == "views")
-//      $programs = $program_manager->getMostViewedPrograms($flavor, $limit, $offset);
-//    else if ($sortBy == "user")
-//      $programs = $program_manager->getUserPrograms($user_id);
-//    else
-//      $programs = $program_manager->getRecentPrograms($flavor, $limit, $offset);
-
     $programs = $program_manager->getMostRemixed($limit,$offset);
 
-
-//    if ($sortBy == "user")
-    $numbOfTotalProjects = count($programs);
-//    else
-    //     $numbOfTotalProjects = $program_manager->getTotalPrograms($flavor);
+    $numbOfTotalProjects = count($program_manager->getMostRemixed(null,null));
 
     $retArray['CatrobatProjects'] = array ();
     foreach($programs as $program)
@@ -60,6 +42,7 @@ class RemixController extends Controller
       $new_program['Author'] = $program->getUser()->getUserName();
       $new_program['Description'] = $program->getDescription();
       $new_program['RemixOf'] = $program->getRemixOf() ? $program->getRemixOf()->getId() : null;
+      $new_program['RemixCount'] = $program->getRemixCount();
       $new_program['ProjectUrl'] = ltrim($this->generateUrl('program', array('flavor' => $request->attributes->get("flavor"), 'id' => $program->getId())),"/");
       $new_program['DownloadUrl'] = ltrim($this->generateUrl('download', array('id' => $program->getId())),"/");
       $retArray['CatrobatProjects'][] = $new_program;
@@ -76,4 +59,58 @@ class RemixController extends Controller
     return JsonResponse::create($retArray);
   }
 
+
+  /**
+   * @Route("/api/programs/getRemixOf.json", name="api_get_most_remixed", defaults={"_format": "json"})
+   * @Method({"GET"})
+   */
+  public function getRemixOfAction(Request $request)
+  {
+    /**
+     * @var $program \Catrobat\AppBundle\Entity\Program
+     */
+
+    $program_manager = $this->get("programmanager");
+
+    $retArray = array ();
+    $programId = intval($request->query->get('id', 0));
+    $depth = intval($request->query->get('depth', 20));
+
+    if($programId == 0)
+    {
+      return JsonResponse::create(array('Error' => 'Program id is missing.'));
+    }
+
+    $program = $program_manager->find($programId);
+    if($program == null)
+    {
+      return JsonResponse::create(array('Error' => 'Program not found.'));
+    }
+
+    return JsonResponse::create(array (
+        'id' => $programId,
+        'childs' => $this->getChilds($program, $depth)
+    ));
+  }
+
+  private function getChilds($program, $depth)
+  {
+    if($depth == 0)
+      return null;
+
+    $repo = $this->getDoctrine()->getManager()->getRepository('\Catrobat\AppBundle\Entity\Program');
+    $childs = $repo->findBy(array('remix_of' => $program));
+
+    $retArray = array();
+
+    foreach($childs as $child)
+    {
+      $retArray[] = array(
+        'id' => $child->getId(),
+        'childs' => $child->getRemixCount() > 0 ? $this->getChilds($child, $depth-1) : null
+      );
+    }
+
+    return $retArray;
+  }
 }
