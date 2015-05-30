@@ -61,7 +61,7 @@ class RemixController extends Controller
 
 
   /**
-   * @Route("/api/programs/getRemixOf.json", name="api_get_most_remixed", defaults={"_format": "json"})
+   * @Route("/api/programs/getRemixOf.json", name="api_get_remix_of", defaults={"_format": "json"})
    * @Method({"GET"})
    */
   public function getRemixOfAction(Request $request)
