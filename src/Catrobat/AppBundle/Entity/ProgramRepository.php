@@ -150,8 +150,9 @@ class ProgramRepository extends EntityRepository
     return $qb
       ->select('e')
       ->where($qb->expr()->eq("e.visible", $qb->expr()->literal(true)))
+      ->andWhere($qb->expr()->gt("e.remix_count", 0))
       ->andWhere($qb->expr()->eq("e.flavor", ":flavor"))
-      ->orderBy('e.remix_count', 'ASC')
+      ->orderBy('e.remix_count', 'DESC')
       ->setParameter("flavor", $flavor)
       ->setFirstResult($offset)
       ->setMaxResults($limit)

@@ -52,4 +52,10 @@ services:
               arguments: ["@catrowebadmin.filesystem","@usermanager","@programmanager", "@doctrine.orm.entity_manager"]
               tags:
                 -  { name: console.command }
+
+      command.remix.count:
+              class: Catrobat\AppBundle\Commands\CreateRemixCount
+              arguments: ["@catrowebadmin.filesystem","@usermanager","@programmanager", "@doctrine.orm.entity_manager"]
+              tags:
+                -  { name: console.command }
                 

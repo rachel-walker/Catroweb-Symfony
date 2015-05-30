@@ -59,7 +59,7 @@ class RemixController extends Controller
       $new_program['ProjectNameShort'] = $program->getName();
       $new_program['Author'] = $program->getUser()->getUserName();
       $new_program['Description'] = $program->getDescription();
-      $new_program['RemixOf'] = $program->getRemixOf();
+      $new_program['RemixOf'] = $program->getRemixOf() ? $program->getRemixOf()->getId() : null;
       $new_program['ProjectUrl'] = ltrim($this->generateUrl('program', array('flavor' => $request->attributes->get("flavor"), 'id' => $program->getId())),"/");
       $new_program['DownloadUrl'] = ltrim($this->generateUrl('download', array('id' => $program->getId())),"/");
       $retArray['CatrobatProjects'][] = $new_program;
