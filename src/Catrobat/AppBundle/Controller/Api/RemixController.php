@@ -39,7 +39,8 @@ class RemixController extends Controller
       $new_program['ProjectId'] = $program->getId();
       $new_program['ProjectName'] = $program->getName();
       $new_program['ProjectNameShort'] = $program->getName();
-      $new_program['Author'] = $program->getUser()->getUserName();
+      $new_program['User'] = $program->getUser()->getUserName();
+      $new_program['UserId'] = $program->getUser()->getId();
       $new_program['Description'] = $program->getDescription();
       $new_program['RemixOf'] = $program->getRemixOf() ? $program->getRemixOf()->getId() : null;
       $new_program['RemixCount'] = $program->getRemixCount();
@@ -91,6 +92,8 @@ class RemixController extends Controller
     return JsonResponse::create(array (
         'id' => $programId,
         'name' => $program->getName(),
+        'user' => $program->getUser()->getUsername(),
+        'userId' => $program->getUser()->getId(),
         'image' => $screenshot_repository->getThumbnailWebPath($program->getId()),
         'parent' => $program->getRemixOf() ? $program->getRemixOf()->getId() : null,
         'childs' => $program->getRemixCount() > 0 ? $this->getChilds($request, $program, $depth) : null
@@ -113,6 +116,8 @@ class RemixController extends Controller
       $retArray[] = array(
         'id' => $child->getId(),
         'name' => $program->getName(),
+        'user' => $program->getUser()->getUsername(),
+        'userId' => $program->getUser()->getId(),
         'image' => $screenshot_repository->getThumbnailWebPath($program->getId()),
         'parent' => $child->getRemixOf() ? $child->getRemixOf()->getId() : null,
         'childs' => $child->getRemixCount() > 0 ? $this->getChilds($request, $child, $depth-1) : null
