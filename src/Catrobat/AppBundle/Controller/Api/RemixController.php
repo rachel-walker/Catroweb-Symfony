@@ -71,6 +71,7 @@ class RemixController extends Controller
      */
 
     $program_manager = $this->get("programmanager");
+    $screenshot_repository = $this->get("screenshotrepository");
 
     $retArray = array ();
     $programId = intval($request->query->get('id', 0));
@@ -89,14 +90,17 @@ class RemixController extends Controller
 
     return JsonResponse::create(array (
         'id' => $programId,
-        'childs' => $this->getChilds($program, $depth)
+        'name' => $program->getName(),
+        'image' => ($request->isSecure() ? 'https://' : 'http://'). $request->getHttpHost() . '/' . $screenshot_repository->getThumbnailWebPath($program->getId()),
+        'childs' => $program->getRemixCount() > 0 ? $this->getChilds($request, $program, $depth) : null
     ));
   }
 
-  private function getChilds($program, $depth)
+  private function getChilds($request, $program, $depth)
   {
     if($depth == 0)
       return null;
+    $screenshot_repository = $this->get("screenshotrepository");
 
     $repo = $this->getDoctrine()->getManager()->getRepository('\Catrobat\AppBundle\Entity\Program');
     $childs = $repo->findBy(array('remix_of' => $program));
@@ -107,7 +111,9 @@ class RemixController extends Controller
     {
       $retArray[] = array(
         'id' => $child->getId(),
-        'childs' => $child->getRemixCount() > 0 ? $this->getChilds($child, $depth-1) : null
+        'name' => $program->getName(),
+        'image' => ($request->isSecure() ? 'https://' : 'http://'). $request->getHttpHost() . '/' . $screenshot_repository->getThumbnailWebPath($program->getId()),
+        'childs' => $child->getRemixCount() > 0 ? $this->getChilds($request, $child, $depth-1) : null
       );
     }
 
