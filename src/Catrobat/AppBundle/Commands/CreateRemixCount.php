@@ -75,6 +75,7 @@ class CreateRemixCount extends ContainerAwareCommand
     {
         /**
          * @var $program \Catrobat\AppBundle\Entity\Program
+         * @var $program_up \Catrobat\AppBundle\Entity\Program
          */
         $programs = $this->program_manager->findAll();
 
@@ -85,11 +86,16 @@ class CreateRemixCount extends ContainerAwareCommand
                 $this->output->writeln('Program with remix info found ...');
 
                 $program_up = $this->program_manager->find($program->getRemixOf()->getId());
-                if($program_up != null)
+
+                if($program->getId() == $program_up->getId())
+                {
+                    $program_up->setRemixOf(null);
+                }
+                else if ($program_up != null)
                 {
                     $program_up->setRemixCount($program_up->getRemixCount() + 1);
-                    $this->em->persist($program_up);
                 }
+                $this->em->persist($program_up);
             }
         }
         $this->output->writeln('Finished ... saving database');
