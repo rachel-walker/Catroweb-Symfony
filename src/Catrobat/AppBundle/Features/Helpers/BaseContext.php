@@ -238,7 +238,8 @@ class BaseContext implements KernelAwareContext, CustomSnippetAcceptingContext
     $program->setCatrobatVersionName(isset($config['catrobatversionname']) ? $config['catrobatversionname'] : "0.9.1");
     $program->setLanguageVersion(isset($config['languageversion']) ? $config['languageversion'] : 1);
     $program->setUploadIp("127.0.0.1");
-    $program->setRemixCount(0);
+    $program->setRemixOf((isset($config['remixof'])) ? $config['remixof'] : null);
+    $program->setRemixCount((isset($config['remixcount']) ? $config['remixcount'] : 0));
     $program->setFilesize(isset($config['filesize']) ? $config['filesize'] : 0);
     $program->setVisible(isset($config['visible']) ? boolval($config['visible']) : true);
     $program->setUploadLanguage("en");

@@ -8,6 +8,7 @@ use Catrobat\AppBundle\Features\Helpers\BaseContext;
 use Behat\Gherkin\Node\PyStringNode, Behat\Gherkin\Node\TableNode;
 use Catrobat\AppBundle\Entity\User;
 use Catrobat\AppBundle\Entity\Program;
+use SebastianBergmann\Environment\Console;
 use Symfony\Component\HttpFoundation\File\File;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Catrobat\AppBundle\Services\TokenGenerator;
@@ -196,6 +197,7 @@ class FeatureContext extends BaseContext
   public function thereArePrograms(TableNode $table)
   {
     $programs = $table->getHash();
+    $program_manager = $this->getProgramManger();
     for($i = 0; $i < count($programs); $i ++)
     {
       $user = $this->getUserManager()->findOneBy(array (
@@ -204,11 +206,13 @@ class FeatureContext extends BaseContext
       $config = array(
         'name' => $programs[$i]['name'],
         'description' => $programs[$i]['description'],
-        'views' => $programs[$i]['views'],
-        'downloads' => $programs[$i]['downloads'],
-        'uploadtime' => $programs[$i]['upload time'],
-        'catrobatversionname' => $programs[$i]['version'],
-        'filesize' => @$programs[$i]['FileSize'],
+        'views' => isset($programs[$i]['views']) ? $programs[$i]['views'] : 0,
+        'downloads' => isset($programs[$i]['downloads']) ? $programs[$i]['downloads'] : 0,
+        'uploadtime' => isset($programs[$i]['upload time']) ? $programs[$i]['upload time'] : '01.01.2013 12:00',
+        'catrobatversionname' => isset($programs[$i]['version']) ? $programs[$i]['version'] : 0,
+        'filesize' => isset($programs[$i]['FileSize']) ? @$programs[$i]['FileSize'] : 0,
+        'remixof' => isset($programs[$i]['RemixOf']) ? $program_manager->find($programs[$i]['RemixOf']) : null,
+        'remixcount' => $programs[$i]['RemixCount'],
         'visible' => isset($programs[$i]['visible']) ? $programs[$i]['visible'] =="true" : true
       );
 
